@@ -2,8 +2,11 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const authRoutes = require('./route/auth'); // Import route untuk autentikasi
 const config = require('./config'); // Konfigurasi koneksi database
+// const multer = require('multer');
+
 
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 
 // Middleware untuk parsing application/json

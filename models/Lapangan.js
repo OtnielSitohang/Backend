@@ -21,7 +21,7 @@ class Lapangan {
           WHEN lapangan.jenis_lapangan_id = 1 THEN 'Keramik'
           WHEN lapangan.jenis_lapangan_id = 2 THEN 'Karpet'
         END AS jenis_lapangan, -- Ubah urutan jenis lapangan
-        lapangan.nama,
+        lapangan.nama_lapangan,
         lapangan.gambar_base64 AS gambarLapangan, -- Ubah ke camelCase
         lapangan.harga
       FROM
@@ -32,14 +32,14 @@ class Lapangan {
         return callback(err, null);
       }
       const lapangans = results.map(row => {
-        return new Lapangan(row.id, row.jenis_lapangan_id, row.nama, row.gambarLapangan, row.harga, row.jenis_lapangan); // Menambahkan jenis_lapangan
+        return new Lapangan(row.id, row.jenis_lapangan_id, row.nama_lapangan, row.gambarLapangan, row.harga, row.jenis_lapangan); // Menambahkan jenis_lapangan
       });
       callback(null, lapangans);
     });
   }
 
   static create(jenisLapanganId, namaLapangan, gambarLapangan, hargaLapangan, callback) {
-    const query = 'INSERT INTO lapangan (jenis_lapangan_id, nama, gambar_base64, harga) VALUES (?, ?, ?, ?)';
+    const query = 'INSERT INTO lapangan (jenis_lapangan_id, nama_lapangan, gambar_base64, harga) VALUES (?, ?, ?, ?)';
     db.query(query, [jenisLapanganId, namaLapangan, gambarLapangan, hargaLapangan], (err, result) => {
       if (err) {
         return callback(err, null);
