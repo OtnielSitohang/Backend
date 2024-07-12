@@ -14,6 +14,9 @@ class Pengguna {
     this.role = role;
   }
 
+
+  
+
   static findByUsername(username, callback) {
     const query = 'SELECT * FROM pengguna WHERE username = ?';
     db.query(query, [username], (err, results) => {
