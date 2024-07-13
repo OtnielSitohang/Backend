@@ -3,15 +3,16 @@ const jwt = require('jsonwebtoken');
 const db = require('../config'); // Import db dari config
 
 class Pengguna {
-  constructor(username, passwordHash, namaLengkap, fotoBase64, tanggal_lahir, email, tempatTinggal, role) {
+  constructor(username, passwordHash, nama_lengkap, foto_base64, tanggal_lahir, email, tempat_tinggal, role, password) {
     this.username = username;
     this.passwordHash = passwordHash;
-    this.namaLengkap = namaLengkap;
-    this.fotoBase64 = fotoBase64;
+    this.nama_lengkap = nama_lengkap;
+    this.foto_base64 = foto_base64;
     this.tanggal_lahir = tanggal_lahir;
     this.email = email;
-    this.tempatTinggal = tempatTinggal;
+    this.tempat_tinggal = tempat_tinggal;
     this.role = role;
+    this.password = password;
   }
 
   static findByUsername(username, callback) {
@@ -61,13 +62,13 @@ class Pengguna {
   }
 
   updateProfile(profileData, callback) {
-    const { fotoBase64, email, tanggal_lahir } = profileData;
+    const { foto_base64, email, tanggal_lahir } = profileData;
     let updateFields = [];
     let updateValues = [];
 
-    if (fotoBase64) {
+    if (foto_base64) {
       updateFields.push('foto_base64 = ?');
-      updateValues.push(fotoBase64);
+      updateValues.push(foto_base64);
     }
     if (email) {
       updateFields.push('email = ?');
@@ -94,8 +95,8 @@ class Pengguna {
       }
       
       // Update object properties
-      if (fotoBase64) {
-        this.fotoBase64 = fotoBase64;
+      if (foto_base64) {
+        this.foto_base64 = foto_base64;
       }
       if (email) {
         this.email = email;

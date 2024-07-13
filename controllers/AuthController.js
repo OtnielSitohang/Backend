@@ -26,24 +26,30 @@ const login = (req, res) => {
         return res.status(401).json({ message: 'Authentication failed' });
       }
 
+      // Ensure that pengguna data is valid before constructing response
+      if (!pengguna || pengguna.username === null || pengguna.nama_lengkap === null || pengguna.foto_base64 === null || pengguna.tanggal_lahir === null || pengguna.email === null || pengguna.tempat_tinggal === null || pengguna.role === null) {
+        console.error('Invalid pengguna data retrieved from database');
+        return res.status(500).json({ message: 'Invalid user data' });
+      }
+
       const token = pengguna.generateJwtToken(secretKey, '1h');
       res.json({
         message: 'Anda berhasil login',
         token: token,
         data: {
+          id: pengguna.id,
           username: pengguna.username,
-          namaLengkap: pengguna.namaLengkap,
-          fotoBase64: pengguna.fotoBase64,
-          tanggalLahir: pengguna.tanggalLahir,
+          nama_lengkap: pengguna.nama_lengkap,
+          foto_base64: pengguna.foto_base64,
+          tanggal_lahir: pengguna.tanggal_lahir,
           email: pengguna.email,
-          tempatTinggal: pengguna.tempatTinggal,
+          tempat_tinggal: pengguna.tempat_tinggal,
           role: pengguna.role
         }
       });
     });
   });
 };
-
 module.exports = {
   login
 };
