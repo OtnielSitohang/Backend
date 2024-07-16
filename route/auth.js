@@ -5,6 +5,7 @@ const LapanganController = require('../controllers/LapanganController'); // Past
 const JenisLapanganController = require('../controllers/JenisLapanganController');
 const PenggunaController = require('../controllers/penggunaController'); // Import controller untuk pengguna
 const multer = require('multer');
+const { createBooking, getBookingById, getAllBookings } = require('../controllers/BookingController');
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -21,5 +22,10 @@ router.post('/jenis-lapangan', JenisLapanganController.createJenisLapangan);
 
 // Endpoint untuk update profil pengguna
 router.put('/pengguna/:id', PenggunaController.updateProfile);
+
+// Endpoint untuk booking
+router.post('/booking', upload.single('bukti_pembayaran'), createBooking);
+router.get('/booking/:bookingId', getBookingById);
+router.get('/booking', getAllBookings);
 
 module.exports = router;
