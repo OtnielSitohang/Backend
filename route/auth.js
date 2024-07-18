@@ -5,7 +5,7 @@ const LapanganController = require('../controllers/LapanganController'); // Past
 const JenisLapanganController = require('../controllers/JenisLapanganController');
 const PenggunaController = require('../controllers/penggunaController'); // Import controller untuk pengguna
 const multer = require('multer');
-const { createBooking, getBookingById, getAllBookings } = require('../controllers/BookingController');
+const { createBooking, getBookingById, getAllBookings, confirmBooking, getBookings } = require('../controllers/BookingController');
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -27,5 +27,20 @@ router.put('/pengguna/:id', PenggunaController.updateProfile);
 router.post('/booking', upload.single('bukti_pembayaran'), createBooking);
 router.get('/booking/:bookingId', getBookingById);
 router.get('/booking', getAllBookings);
+router.put("/bookings/confirm/:bookingId", confirmBooking);
+router.get('/bookings', async (req, res) => {
+    try {
+      const filters = {
+        tanggal_penggunaan: req.query.tanggal_penggunaan,
+        jenis_lapangan_id: req.query.jenis_lapangan_id,
+        status_konfirmasi: req.query.status_konfirmasi,
+      };
+      
+      const results = await getBookings(filters);
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 
 module.exports = router;
