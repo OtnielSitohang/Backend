@@ -1,14 +1,16 @@
 const Pengguna = require('../models/Pengguna');
-const bcrypt = require('bcryptjs');
 const fs = require('fs');
-const base64js = require('base64-js');
-const db = require('../config');
+const path = require('path');
+const bcrypt = require('bcryptjs');
+const db = require('../config'); // Import db from config
 
-// Fungsi untuk membaca dan mengonversi file ke base64
+// Path to default.jpg in assets folder
+const defaultImagePath = path.join(__dirname, '../assets/default.jpg');
+
+// Function to convert file to base64
 function fileToBase64(filePath) {
   const fileData = fs.readFileSync(filePath);
-  const base64String = base64js.fromByteArray(fileData);
-  return base64String;
+  return Buffer.from(fileData).toString('base64');
 }
 
 exports.register = (req, res) => {
@@ -17,21 +19,21 @@ exports.register = (req, res) => {
   if (role !== 'admin' && role !== 'customer') {
     return res.status(400).json({ message: 'Role must be either "admin" or "customer"' });
   }
-  
-  // Mengonversi foto_base64 dari file ke base64 jika ada file yang diunggah
-  const foto_base64 = req.file ? `data:${req.file.mimetype};base64,${fileToBase64(req.file.path)}` : null;
 
-  // Hash password menggunakan bcrypt
+  // Convert default.jpg to base64
+  const foto_base64 = fileToBase64(defaultImagePath);
+
+  // Hash password using bcrypt
   bcrypt.hash(password, 10, (err, hashedPassword) => {
     if (err) {
       console.error('Error hashing password:', err);
       return res.status(500).json({ message: 'Internal server error' });
     }
 
-    // Buat instance Pengguna baru dengan base64 foto
+    // Create a new Pengguna instance with base64 foto
     const newPengguna = new Pengguna(username, hashedPassword, nama_lengkap, foto_base64, tanggal_lahir, email, tempat_tinggal, role);
 
-    // Insert pengguna baru ke database
+    // Insert new pengguna into the database
     const insertQuery = 'INSERT INTO Pengguna (username, password, nama_lengkap, foto_base64, tanggal_lahir, email, tempat_tinggal, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
     const values = [newPengguna.username, newPengguna.passwordHash, newPengguna.nama_lengkap, newPengguna.foto_base64, newPengguna.tanggal_lahir, newPengguna.email, newPengguna.tempat_tinggal, newPengguna.role];
 
@@ -41,12 +43,7 @@ exports.register = (req, res) => {
         return res.status(500).json({ message: 'Failed to create new pengguna' });
       }
 
-      // Hapus file yang sudah diunggah dari sistem file (opsional)
-      if (req.file) {
-        fs.unlinkSync(req.file.path);
-      }
-
-      // Respons sukses dan data pengguna yang baru dibuat
+      // Successful response with newly created pengguna data
       res.status(201).json({
         message: 'New pengguna created successfully',
         data: {
@@ -63,6 +60,7 @@ exports.register = (req, res) => {
     });
   });
 };
+
 
 exports.updateProfile = (req, res) => {
   const { foto_base64, email, tempat_tinggal, tanggal_lahir } = req.body;
