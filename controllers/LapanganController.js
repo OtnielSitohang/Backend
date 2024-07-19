@@ -17,14 +17,15 @@ const createLapangan = (req, res) => {
   const { jenis_lapangan_id, nama_lapangan, gambar_base64, harga } = req.body;
 
   // Jika jenis_lapangan_id 1 atau 2, gunakan data yang sudah ada
-  if (jenis_lapangan_id == 1 || jenis_lapangan_id == 2) {
+  if (jenis_lapangan_id == 1 || jenis_lapangan_id == 2 || jenis_lapangan_id == 3) {
     let gambarPath;
     if (jenis_lapangan_id == 1) {
-      gambarPath = 'assets/keramik.jpg'; // Path gambar keramik
+      gambarPath = 'assets/keramik.jpg'; 
     } else if (jenis_lapangan_id == 2) {
-      gambarPath = 'assets/karpet.jpg'; // Path gambar karpet
+      gambarPath = 'assets/karpet.jpg'; 
+    } else if (jenis_lapangan_id == 3) {
+      gambarPath = 'assets/vinly.jpg'; 
     }
-
     // Konversi gambar menjadi base64
     const gambarData = fs.readFileSync(gambarPath);
     const gambarBase64 = gambarData.toString('base64');
@@ -32,6 +33,7 @@ const createLapangan = (req, res) => {
     // Simpan ke database dengan data yang sudah ada
     Lapangan.create(jenis_lapangan_id, nama_lapangan, gambarBase64, harga, (err, insertId) => {
       if (err) {
+        console.error('Error creating lapangan:', err); // Tambahkan log error di sini
         return res.status(500).json({ message: 'Internal server error' });
       }
       res.status(201).json({ message: 'Lapangan created successfully', id: insertId });
@@ -49,6 +51,7 @@ const createLapangan = (req, res) => {
     // Simpan data baru ke database
     Lapangan.create(jenis_lapangan_id, nama_lapangan, gambarBuffer, harga, (err, insertId) => {
       if (err) {
+        console.error('Error creating lapangan:', err); // Tambahkan log error di sini
         return res.status(500).json({ message: 'Internal server error' });
       }
       res.status(201).json({ message: 'Lapangan created successfully', id: insertId });
