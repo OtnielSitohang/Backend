@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const secretKey = 'your_secret_key'; // Ganti dengan secret key yang lebih kompleks untuk produksi
 
+// Controller untuk login pengguna
 const login = (req, res) => {
   const { username, password } = req.body;
 
@@ -50,6 +51,36 @@ const login = (req, res) => {
     });
   });
 };
+
+// Controller untuk mengubah password pengguna
+const changePassword = (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  const { id } = req.params;
+
+  // Find the user by id
+  Pengguna.findById(id, (err, user) => {
+    if (err) {
+      console.error('Error finding user:', err);
+      return res.status(500).json({ message: 'Failed to find user' });
+    }
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Call ubahPassword method on user instance
+    user.ubahPassword(oldPassword, newPassword, (err) => {
+      if (err) {
+        console.error('Error changing password:', err);
+        return res.status(400).json({ message: err.message });
+      }
+
+      // Password changed successfully
+      res.json({ message: 'Password changed successfully' });
+    });
+  });
+};
+
 module.exports = {
-  login
+  login,
+  changePassword
 };

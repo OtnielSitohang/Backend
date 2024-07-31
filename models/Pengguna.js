@@ -1,18 +1,17 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const db = require('../config'); // Import db dari config
+const db = require('../config'); // Sesuaikan dengan konfigurasi database Anda
 
 class Pengguna {
-  constructor(username, passwordHash, nama_lengkap, foto_base64, tanggal_lahir, email, tempat_tinggal, role, password) {
+  constructor(username, password, nama_lengkap, foto_base64, tanggal_lahir, email, tempat_tinggal, role) {
     this.username = username;
-    this.passwordHash = passwordHash;
+    this.password = password;
     this.nama_lengkap = nama_lengkap;
     this.foto_base64 = foto_base64;
     this.tanggal_lahir = tanggal_lahir;
     this.email = email;
     this.tempat_tinggal = tempat_tinggal;
     this.role = role;
-    this.password = password;
   }
 
   static findByUsername(username, callback) {
@@ -48,8 +47,7 @@ class Pengguna {
   }
 
   verifyPassword(password, callback) {
-    console.log(`Verifying password: ${password} with hash: ${this.passwordHash}`);
-    bcrypt.compare(password, this.passwordHash, (err, result) => {
+    bcrypt.compare(password, this.password, (err, result) => {
       if (err) {
         return callback(err, false);
       }
@@ -106,6 +104,43 @@ class Pengguna {
       }
 
       callback(null, this);
+    });
+  }
+
+  ubahPassword(oldPassword, newPassword, callback) {
+    // Verify old password first
+    this.verifyPassword(oldPassword, (err, isMatch) => {
+      if (err) {
+        return callback(err);
+      }
+      if (!isMatch) {
+        return callback(new Error('Old password is incorrect'));
+      }
+
+      // Check if new password is the same as old password
+      if (newPassword === oldPassword) {
+        return callback(new Error('New password must be different from the old password'));
+      }
+
+      // Update password in the database
+      const updateQuery = 'UPDATE pengguna SET password = ? WHERE id = ?';
+      bcrypt.hash(newPassword, 10, (err, hashedPassword) => {
+        if (err) {
+          return callback(err);
+        }
+        db.query(updateQuery, [hashedPassword, this.id], (err, result) => {
+          if (err) {
+            return callback(err);
+          }
+          if (result.affectedRows === 0) {
+            return callback(new Error('User not found or no changes applied'));
+          }
+
+          // Update object property
+          this.password = newPassword; // Menggunakan plain text password
+          callback(null);
+        });
+      });
     });
   }
 }

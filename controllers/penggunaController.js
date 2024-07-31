@@ -30,12 +30,32 @@ exports.register = (req, res) => {
       return res.status(500).json({ message: 'Internal server error' });
     }
 
-    // Create a new Pengguna instance with base64 foto
-    const newPengguna = new Pengguna(username, hashedPassword, nama_lengkap, foto_base64, tanggal_lahir, email, tempat_tinggal, role);
+    const newPengguna = {
+      username,
+      password: hashedPassword,
+      nama_lengkap,
+      foto_base64,
+      tanggal_lahir,
+      email,
+      tempat_tinggal,
+      role
+    };
 
     // Insert new pengguna into the database
     const insertQuery = 'INSERT INTO Pengguna (username, password, nama_lengkap, foto_base64, tanggal_lahir, email, tempat_tinggal, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-    const values = [newPengguna.username, newPengguna.passwordHash, newPengguna.nama_lengkap, newPengguna.foto_base64, newPengguna.tanggal_lahir, newPengguna.email, newPengguna.tempat_tinggal, newPengguna.role];
+    const values = [
+      newPengguna.username, 
+      newPengguna.password, 
+      newPengguna.nama_lengkap, 
+      newPengguna.foto_base64, 
+      newPengguna.tanggal_lahir, 
+      newPengguna.email, 
+      newPengguna.tempat_tinggal, 
+      newPengguna.role
+    ];
+
+    console.log('Insert query:', insertQuery); // Debugging query
+    console.log('Values:', values); // Debugging values
 
     db.query(insertQuery, values, (err, result) => {
       if (err) {
@@ -43,7 +63,6 @@ exports.register = (req, res) => {
         return res.status(500).json({ message: 'Failed to create new pengguna' });
       }
 
-      // Successful response with newly created pengguna data
       res.status(201).json({
         message: 'New pengguna created successfully',
         data: {
@@ -55,11 +74,13 @@ exports.register = (req, res) => {
           tanggal_lahir: newPengguna.tanggal_lahir,
           role: newPengguna.role,
           foto_base64: newPengguna.foto_base64
+          // 'created_at' diabaikan karena akan diatur otomatis oleh database
         }
       });
     });
   });
 };
+
 
 
 exports.updateProfile = (req, res) => {
@@ -130,3 +151,35 @@ exports.updateProfile = (req, res) => {
     });
   });
 };
+
+
+
+exports.changePassword = (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  const { id } = req.params;
+
+  // Find the user by id
+  Pengguna.findById(id, (err, user) => {
+    if (err) {
+      console.error('Error finding user:', err);
+      return res.status(500).json({ message: 'Failed to find user' });
+    }
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Call ubahPassword method on user instance
+    user.ubahPassword(oldPassword, newPassword, (err) => {
+      if (err) {
+        console.error('Error changing password:', err);
+        return res.status(400).json({ message: err.message });
+      }
+
+      // Password changed successfully
+      res.json({ message: 'Password changed successfully' });
+    });
+  });
+};
+
+
+

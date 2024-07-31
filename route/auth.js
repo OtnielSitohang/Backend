@@ -5,7 +5,8 @@ const LapanganController = require('../controllers/LapanganController');
 const JenisLapanganController = require('../controllers/JenisLapanganController');
 const multer = require('multer');
 const { createBooking, getBookingById, getAllBookings, confirmBooking, getBookings } = require('../controllers/BookingController');
-const { register, updateProfile } = require('../controllers/penggunaController');
+const { register, updateProfile, changePassword } = require('../controllers/penggunaController');
+const DashboardController = require('../controllers/DashboardController ');
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -14,6 +15,7 @@ router.post('/login', authController.login);
 
 //Endpoint untuk Register
 router.post('/register', upload.single('foto_base64'), register);
+router.put('/ubahPassword/:id', changePassword);
 // Endpoint untuk update profil pengguna
 router.put('/pengguna/:id', updateProfile);
 
@@ -45,6 +47,13 @@ router.get('/bookings', async (req, res) => {
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
-  });
+  }
+);
+router.get('/bookingspermonth', DashboardController.getBookingPerMonth);
+router.get('/bookingsperjenislapangan', DashboardController.getBookingsPerJenisLapangan);
+router.get('/revenuepermonth', DashboardController.getRevenuePerMonth);
+router.get('/bookingsbystatus', DashboardController.getBookingsByStatus);
+router.get('/newuserspermonth', DashboardController.getNewUsersPerMonth);
+router.get('/bookingsperuser', DashboardController.getBookingsPerUser);
 
 module.exports = router;
