@@ -6,7 +6,8 @@ const JenisLapanganController = require('../controllers/JenisLapanganController'
 const multer = require('multer');
 const { createBooking, getBookingById, getAllBookings, confirmBooking, getBookings } = require('../controllers/BookingController');
 const { register, updateProfile, changePassword } = require('../controllers/penggunaController');
-const DashboardController = require('../controllers/DashboardController ');
+const LaporanController = require('../controllers/LaporanController');
+const DashboardController = require('../controllers/DashboardController');
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -49,11 +50,14 @@ router.get('/bookings', async (req, res) => {
     }
   }
 );
-router.get('/bookingspermonth', DashboardController.getBookingPerMonth);
-router.get('/bookingsperjenislapangan', DashboardController.getBookingsPerJenisLapangan);
-router.get('/revenuepermonth', DashboardController.getRevenuePerMonth);
-router.get('/bookingsbystatus', DashboardController.getBookingsByStatus);
-router.get('/newuserspermonth', DashboardController.getNewUsersPerMonth);
-router.get('/bookingsperuser', DashboardController.getBookingsPerUser);
+router.get('/bookingspermonth', LaporanController.getBookingPerMonth);
+router.get('/bookingsperjenislapangan', LaporanController.getBookingsPerJenisLapangan);
+router.get('/revenuepermonth', LaporanController.getRevenuePerMonth);
+router.get('/bookingsbystatus', LaporanController.getBookingsByStatus);
+router.get('/newuserspermonth', LaporanController.getNewUsersPerMonth);
+router.get('/bookingsperuser', LaporanController.getBookingsPerUser);
+
+router.get('/users', DashboardController.getAllUsersWithCounts);
+router.post('/resetpassword/:userId', DashboardController.resetPassword);
 
 module.exports = router;
