@@ -6,7 +6,7 @@ const LapanganController = require('../controllers/LapanganController');
 const JenisLapanganController = require('../controllers/JenisLapanganController');
 const LaporanController = require('../controllers/LaporanController');
 const DashboardController = require('../controllers/DashboardController');
-const { getAllVouchers, addVoucher } = require('../controllers/Voucher');
+const { getAllVouchers, addVoucher , updateVoucher} = require('../controllers/Voucher');
 
 // Middleware untuk upload file
 const upload = multer({ dest: 'uploads/' });
@@ -59,5 +59,6 @@ router.post('/resetpassword/:userId', DashboardController.resetPassword);
 
 router.get('/getVoucher', getAllVouchers)
 router.post('/addVoucher', addVoucher)
+router.put('/voucher/:id', updateVoucher);
 
 module.exports = router;
