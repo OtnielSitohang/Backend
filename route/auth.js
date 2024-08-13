@@ -31,7 +31,7 @@ router.post('/jenis-lapangan', JenisLapanganController.createJenisLapangan);
 
 
 // Endpoint untuk booking
-router.post('/booking', upload.single('bukti_pembayaran'), createBooking);
+router.post('/booking', createBooking); 
 router.get('/booking/:bookingId', getBookingById);
 router.get('/booking', getAllBookings);
 router.put("/bookings/confirm/:bookingId", confirmBooking);

@@ -1,31 +1,37 @@
+const PDFDocument = require('pdfkit');
+const nodemailer = require('nodemailer');
 const fs = require('fs');
+const path = require('path');
 const Booking = require('../models/Booking');
+const db = require('../config'); 
+
 
 // Fungsi untuk membuat booking
-exports.createBooking = (req, res) => {
-  const { pengguna_id, lapangan_id, jenis_lapangan_id, tanggal_booking, tanggal_penggunaan, sesi, status_konfirmasi, voucher_id } = req.body;
+exports.bookField = async (req, res) => {
+  try {
+    // Destructure data from request body
+    const { pengguna_id, lapangan_id, jenis_lapangan_id, tanggal_booking, tanggal_penggunaan, sesi, foto_base64, harga, voucher_id } = req.body;
 
-  // Konversi file yang diunggah ke base64
-  const filePath = req.file.path;
-  const fileData = fs.readFileSync(filePath);
-  const bukti_pembayaran = fileData.toString('base64');
+    // Insert booking with voucher_id
+    const bookingQuery = `
+      INSERT INTO booking (pengguna_id, lapangan_id, jenis_lapangan_id, tanggal_booking, tanggal_penggunaan, sesi, foto_base64, harga, status_konfirmasi, voucher_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
+    `;
 
-  // Hapus file setelah dikonversi ke base64
-  fs.unlinkSync(filePath);
+    // Set default value for voucher_id if not provided
+    const bookingValues = [pengguna_id, lapangan_id, jenis_lapangan_id, tanggal_booking, tanggal_penggunaan, sesi, foto_base64, harga, voucher_id || null];
 
-  const newBooking = new Booking(pengguna_id, lapangan_id, jenis_lapangan_id, tanggal_booking, tanggal_penggunaan, sesi, bukti_pembayaran, status_konfirmasi, voucher_id);
+    await db.query(bookingQuery, bookingValues);
 
-  Booking.create(newBooking, (err, data) => {
-    if (err) {
-      console.error("Error creating Booking: ", err);
-      res.status(500).send({
-        message: err.message || "Some error occurred while creating the Booking."
-      });
-    } else {
-      res.send(data);
-    }
-  });
+    res.status(201).json({ success: true, message: 'Booking created successfully' });
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    res.status(500).json({ success: false, message: 'Error creating booking', error: error.message });
+  }
 };
+
+
+
 
 // Fungsi untuk mendapatkan booking berdasarkan ID
 exports.getBookingById = (req, res) => {
@@ -60,6 +66,7 @@ exports.getAllBookings = (req, res) => {
   });
 };
 
+// Fungsi untuk mengonfirmasi booking dan mengirimkan invoice
 exports.confirmBooking = (req, res) => {
   Booking.updateStatusKonfirmasi(req.params.bookingId, (err, data) => {
     if (err) {
@@ -78,6 +85,7 @@ exports.confirmBooking = (req, res) => {
   });
 };
 
+// Fungsi untuk mendapatkan booking dengan filter
 exports.getBookings = async (req, res) => {
   try {
     const filters = {
@@ -92,3 +100,94 @@ exports.getBookings = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+exports.checkAvailability = async (req, res) => {
+  try {
+    const { jenis_lapangan_id, tanggal_penggunaan, sesi } = req.body;
+
+    // Query untuk mengecek ketersediaan lapangan
+    const query = `
+      SELECT id, nama_lapangan, harga
+      FROM lapangan
+      WHERE jenis_lapangan_id = ? 
+        AND id NOT IN (
+          SELECT lapangan_id
+          FROM booking
+          WHERE jenis_lapangan_id = ?
+            AND tanggal_penggunaan = ?
+            AND sesi = ?
+        )
+    `;
+    db.query(query, [jenis_lapangan_id, jenis_lapangan_id, tanggal_penggunaan, sesi], (error, results) => {
+      if (error) {
+        console.error('Error checking field availability:', error);
+        res.status(500).json({ message: 'Internal server error' });
+        return;
+      }
+      
+      // Menyusun data lapangan yang tersedia dengan harga
+      const lapanganAvailable = results.map(({ id, nama_lapangan, harga }) => ({
+        id,
+        nama_lapangan,
+        harga
+      }));
+      
+      res.status(200).json(lapanganAvailable);
+    });
+  } catch (error) {
+    console.error('Error checking field availability:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+// Fungsi untuk membuat booking
+exports.bookField = async (req, res) => {
+  try {
+    const { pengguna_id, lapangan_id, jenis_lapangan_id, tanggal_booking, tanggal_penggunaan, sesi, foto_base64, harga, voucher_id } = req.body;
+
+    // Query untuk melakukan booking dengan data yang diterima dari request body
+    const query = `
+      INSERT INTO booking (pengguna_id, lapangan_id, jenis_lapangan_id, tanggal_booking, tanggal_penggunaan, sesi, bukti_pembayaran, harga, status_konfirmasi, voucher_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
+    `;
+
+    const values = [pengguna_id, lapangan_id, jenis_lapangan_id, tanggal_booking, tanggal_penggunaan, sesi, foto_base64, harga, voucher_id || null];
+
+    // Jalankan query dengan data yang diterima
+    await db.query(query, values);
+
+    res.status(201).json({ success: true, message: 'Booking created successfully' });
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    res.status(500).json({ success: false, message: 'Error creating booking', error: error.message });
+  }
+};
+
+
+
+
+
+// Function to get all users with role 'customer'
+exports.getCustomer = (req, res) => {
+  db.query(
+    'SELECT id, username, nama_lengkap, email FROM pengguna WHERE role = ?',
+    ['customer'],
+    (err, rows) => {
+      if (err) {
+        console.error('Error fetching users:', err); // Log error untuk debugging
+        return res.status(500).json({ message: 'Failed to fetch users' }); // Kirim respons error
+      }
+
+      // Kirim hasil query sebagai JSON
+      res.status(200).json({
+        users: rows
+      });
+    }
+  );
+};
+
+
+
+

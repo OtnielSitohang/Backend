@@ -1,12 +1,12 @@
 const Pengguna = require('../models/Pengguna');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const secretKey = 'your_secret_key'; // Ganti dengan secret key yang lebih kompleks untuk produksi
+const secretKey = 'your_secret_key'; 
+
 
 // Controller untuk login pengguna
 const login = (req, res) => {
   const { username, password } = req.body;
-
   Pengguna.findByUsername(username, (err, pengguna) => {
     if (err) {
       console.error('Error querying database:', err);
@@ -28,7 +28,9 @@ const login = (req, res) => {
       }
 
       // Ensure that pengguna data is valid before constructing response
-      if (!pengguna || pengguna.username === null || pengguna.nama_lengkap === null || pengguna.foto_base64 === null || pengguna.tanggal_lahir === null || pengguna.email === null || pengguna.tempat_tinggal === null || pengguna.role === null) {
+      if (!pengguna || pengguna.username === null || pengguna.nama_lengkap === null 
+        || pengguna.foto_base64 === null || pengguna.tanggal_lahir === null || pengguna.email === null 
+        || pengguna.tempat_tinggal === null || pengguna.role === null) {
         console.error('Invalid pengguna data retrieved from database');
         return res.status(500).json({ message: 'Invalid user data' });
       }

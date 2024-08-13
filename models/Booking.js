@@ -25,6 +25,7 @@ class Booking {
     });
   }
 
+
   static findById(bookingId, result) {
     const query = `
     SELECT b.*, p.nama_lengkap AS nama_pengguna, l.nama_lapangan, l.gambar_base64, jl.nama AS jenis_lapangan
@@ -46,8 +47,7 @@ class Booking {
       result({ kind: "not_found" }, null);
     });
   }
-  
-  
+
   static getAll(result) {
     const query = `
       SELECT b.*, p.nama_lengkap AS nama_pengguna, l.nama_lapangan, l.gambar_base64, jl.nama AS jenis_lapangan
@@ -65,7 +65,6 @@ class Booking {
       result(null, res);
     });
   }
-
   static updateStatusKonfirmasi(id, result) {
     db.query(
       "UPDATE booking SET status_konfirmasi = 1 WHERE id = ?",
@@ -100,30 +99,32 @@ class Booking {
       INNER JOIN jenis_lapangan jl ON b.jenis_lapangan_id = jl.id
       WHERE 1=1
     `;
-    
+    const params = [];
+
     if (tanggal_penggunaan) {
-      query += ` AND b.tanggal_penggunaan = '${tanggal_penggunaan}'`;
+      query += " AND b.tanggal_penggunaan = ?";
+      params.push(tanggal_penggunaan);
     }
-    
+
     if (jenis_lapangan_id) {
-      query += ` AND b.jenis_lapangan_id = ${jenis_lapangan_id}`;
+      query += " AND b.jenis_lapangan_id = ?";
+      params.push(jenis_lapangan_id);
     }
-    
+
     if (status_konfirmasi) {
-      query += ` AND b.status_konfirmasi = ${status_konfirmasi}`;
+      query += " AND b.status_konfirmasi = ?";
+      params.push(status_konfirmasi);
     }
-    
+
     query += " ORDER BY b.tanggal_penggunaan ASC, b.jenis_lapangan_id ASC, b.status_konfirmasi ASC";
-    
-    return new Promise((resolve, reject) => {
-      db.query(query, (err, results) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(results);
-        }
-      });
-    });
+
+    try {
+      const [results] = await db.query(query, params);
+      return results;
+    } catch (err) {
+      console.error("Error retrieving bookings with filters: ", err);
+      throw err;
+    }
   }
 }
 
